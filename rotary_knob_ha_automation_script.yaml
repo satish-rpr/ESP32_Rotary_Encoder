@@ -1,0 +1,13 @@
+alias: Adjust Bulb Brightness
+description: Adjust the brightness of the bulb using the rotary knob
+triggers:
+  - entity_id: sensor.rotary_encoder_knob
+    trigger: state
+conditions: []
+actions:
+  - action: light.turn_on
+    target:
+      entity_id: light.living_three
+    data:
+      brightness_pct: "{{ states('sensor.rotary_encoder_knob') | float }}"
+mode: single

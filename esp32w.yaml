@@ -13,7 +13,7 @@ logger:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "PBxOQ5aU6vmAeflWnCuaz1rfp9WgT/+2Br6ZmYDYB8E="
+    key: "0u8XdpKmzYZodJdT9fF1z1tCk9XToombgKzULPP7FhI="
 
 ota:
   - platform: esphome
@@ -23,10 +23,22 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
+  manual_ip:
+    static_ip: 192.168.1.100
+    gateway: 192.168.1.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Esp32W Fallback Hotspot"
     password: "rYJ979MWzAyt"
+
+globals:
+  - id: encoder_value
+    type: int
+    initial_value: '0'
+    restore_value: true
 
 binary_sensor:
   - platform: gpio
@@ -46,9 +58,29 @@ sensor:
     pin_b: GPIO5    # DT pin
     min_value: 0
     max_value: 100
-    resolution: 1    # Pulses per step: 1,2,4
+    resolution: 4    # Pulses per step: 1,2,4
     on_clockwise:
-      - logger.log: "Clockwise rotation"
+      then:
+        - lambda: |-
+            {
+              id(encoder_value) = id(brightness_knob).state;
+              id(encoder_value_script).execute();
+            }
     on_anticlockwise:
-      - logger.log: "Anticlockwise rotation"
+      then:
+        - lambda: |-
+            {
+              id(encoder_value) = id(brightness_knob).state;
+              id(encoder_value_script).execute();
+            }
+    filters:
+      - debounce: 25ms
+
+script:
+  - id: encoder_value_script
+    then:
+    - homeassistant.service:
+        service: script.handle_encoder_value
+        data:
+          value: !lambda 'return id(encoder_value);'
     
