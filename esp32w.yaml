@@ -1,0 +1,54 @@
+esphome:
+  name: esp32w
+  friendly_name: ESP32W
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "PBxOQ5aU6vmAeflWnCuaz1rfp9WgT/+2Br6ZmYDYB8E="
+
+ota:
+  - platform: esphome
+    password: "9cb7f620a7735c9765e72c40878049d9"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32W Fallback Hotspot"
+    password: "rYJ979MWzAyt"
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO21  # SW button
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Encoder Button"
+    on_press:
+      - logger.log: "Button pressed"
+
+sensor:
+  - platform: rotary_encoder
+    name: "Rotary Encoder"
+    id: brightness_knob
+    pin_a: GPIO4    # CLK pin
+    pin_b: GPIO5    # DT pin
+    min_value: 0
+    max_value: 100
+    resolution: 1    # Pulses per step: 1,2,4
+    on_clockwise:
+      - logger.log: "Clockwise rotation"
+    on_anticlockwise:
+      - logger.log: "Anticlockwise rotation"
+    
